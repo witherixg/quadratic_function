@@ -26,9 +26,13 @@ def newPosition(__prompt=''):
     while True:
         position_string = input(__prompt)
         if len(position_string.split(',')) == 2:
-            return Position(position_string)
+            try:
+                p = Position(position_string)
+                return p
+            except TypeError:
+                print(f"{doubleLine}\nInvalid input!\n\"x\" and \"y\" should both be numbers.\n{doubleLine}")
         else:
-            print(f"{doubleLine}\nInvalid input!\nA position should in the pattern \"(a,b)\"\n{doubleLine}")
+            print(f"{doubleLine}\nInvalid input!\nA position should in the pattern \"(x,y).\"\n{doubleLine}")
 
 
 def getParamWithNothing(p1: Position, p2: Position, p3: Position):
@@ -181,10 +185,10 @@ def main():
             ub = param.get('b')
             uc = param.get('c')
         except (SyntaxError, NameError):
-            reason = "Input is not under syntax"
+            reason = "Input is not under syntax."
         try:
             if Rational(ua) == 0:
-                reason = "The parameter \"a\" can not be 0"
+                reason = "The parameter \"a\" can not be 0."
         except TypeError:
             pass
         if reason:
@@ -209,7 +213,7 @@ def main():
         elif ua:
             ka = Rational(ua)
             p1 = newPosition('First position?\n')
-            p2 = Position(0, 0)
+            p2 = Position("0, 0")
             while flag:
                 p2 = newPosition('Second position?\n')
                 if p1.getX() != p2.getX():
@@ -218,7 +222,7 @@ def main():
         elif ub:
             kb = Rational(ub)
             p1 = newPosition('First position?\n')
-            p2 = Position(0, 0)
+            p2 = Position("0, 0")
             while flag:
                 p2 = newPosition('Second position?\n')
                 if p1.getX() != p2.getX():
@@ -227,7 +231,7 @@ def main():
         elif uc:
             kc = Rational(uc)
             p1 = newPosition('First position?\n')
-            p2 = Position(0, 0)
+            p2 = Position("0, 0")
             while flag:
                 p2 = newPosition('Second position?\n')
                 if p1.getX() != p2.getX():
@@ -235,8 +239,8 @@ def main():
             ka, kb = getParamWithC(kc, p1, p2)
         else:
             p1 = newPosition('First position?\n')
-            p2 = Position(0, 0)
-            p3 = Position(0, 0)
+            p2 = Position("0, 0")
+            p3 = Position("0, 0")
             while flag:
                 p2 = newPosition('Second position?\n')
                 if p1.getX() != p2.getX():
