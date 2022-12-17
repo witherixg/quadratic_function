@@ -180,12 +180,23 @@ def main():
             param = eval(
                 ('{' + input('Input the value of a, b and c if given:(as a=1, b=2)\n') + '}').replace('a',
                                                                                                       "'a'").replace(
-                    'b', "'b'").replace('c', "'c'").replace('=', ':'))
+                    'b', "'b'").replace('c', "'c'").replace('=', ':').strip())
             ua = param.get('a')
             ub = param.get('b')
             uc = param.get('c')
-        except (SyntaxError, NameError):
+        except (SyntaxError, NameError, TypeError, AttributeError):
             reason = "Input is not under syntax."
+        try:
+            if isNotNone(ua):
+                Rational(ua)
+            if isNotNone(ub):
+                Rational(ub)
+            if isNotNone(uc):
+                Rational(uc)
+
+        except TypeError:
+            reason = "Input is not under syntax."
+            pass
         try:
             if Rational(ua) == 0:
                 reason = "The parameter \"a\" can not be 0."
