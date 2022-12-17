@@ -23,7 +23,12 @@ class Position:
 
 
 def newPosition(__prompt=''):
-    return Position(input(__prompt))
+    while True:
+        position_string = input(__prompt)
+        if len(position_string.split(',')) == 2:
+            return Position(position_string)
+        else:
+            print(f"{doubleLine}\nInvalid input!\nA position should in the pattern \"(a,b)\"\n{doubleLine}")
 
 
 def getParamWithNothing(p1: Position, p2: Position, p3: Position):
@@ -124,7 +129,7 @@ def isNotNone(*args):
     return True
 
 
-def numToStrForInteger(n):
+def constantToStr(n):
     if n == 0:
         return ''
     elif str(n)[0] != '-':
@@ -154,15 +159,37 @@ def numToStr(n):
         return str(n)
 
 
+def checkRepetition(*args):
+    a_set = set(args)
+    return len(a_set) == len(args)
+
+
 def main():
     while True:
-        param = eval(
-            ('{' + input('Input the value of a, b and c if given:(as a=1, b=2)\n') + '}').replace('a', "'a'").replace(
-                'b', "'b'").replace('c', "'c'").replace('=', ':'))
-
-        ua = param.get('a')
-        ub = param.get('b')
-        uc = param.get('c')
+        reason = ""
+        ua = ''
+        ub = ''
+        uc = ''
+        flag = True
+        # check if the input is valid
+        try:
+            param = eval(
+                ('{' + input('Input the value of a, b and c if given:(as a=1, b=2)\n') + '}').replace('a',
+                                                                                                      "'a'").replace(
+                    'b', "'b'").replace('c', "'c'").replace('=', ':'))
+            ua = param.get('a')
+            ub = param.get('b')
+            uc = param.get('c')
+        except (SyntaxError, NameError):
+            reason = "Input is not under syntax"
+        try:
+            if Rational(ua) == 0:
+                reason = "The parameter \"a\" can not be 0"
+        except TypeError:
+            pass
+        if reason:
+            print(f"{doubleLine}\nInvalid input!\n{reason}\n{doubleLine}")
+            continue
         if isNotNone(ua, ub, uc):
             ka = Rational(ua)
             kb = Rational(ub)
@@ -181,18 +208,49 @@ def main():
             ka = getParamWithBC(kb, kc, newPosition('First position?\n'))
         elif ua:
             ka = Rational(ua)
-            kb, kc = getParamWithA(ka, newPosition('First position?\n'), newPosition('Second position?\n'))
+            p1 = newPosition('First position?\n')
+            p2 = Position(0, 0)
+            while flag:
+                p2 = newPosition('Second position?\n')
+                if p1.getX() != p2.getX():
+                    flag = False
+            kb, kc = getParamWithA(ka, p1, p2)
         elif ub:
             kb = Rational(ub)
-            ka, kc = getParamWithB(kb, newPosition('First position?\n'), newPosition('Second position?\n'))
+            p1 = newPosition('First position?\n')
+            p2 = Position(0, 0)
+            while flag:
+                p2 = newPosition('Second position?\n')
+                if p1.getX() != p2.getX():
+                    flag = False
+            ka, kc = getParamWithB(kb, p1, p2)
         elif uc:
             kc = Rational(uc)
-            ka, kb = getParamWithC(kc, newPosition('First position?\n'), newPosition('Second position?\n'))
+            p1 = newPosition('First position?\n')
+            p2 = Position(0, 0)
+            while flag:
+                p2 = newPosition('Second position?\n')
+                if p1.getX() != p2.getX():
+                    flag = False
+            ka, kb = getParamWithC(kc, p1, p2)
         else:
-            ka, kb, kc = getParamWithNothing(newPosition('First position?\n'), newPosition('Second position?\n'),
-                                             newPosition())
+            p1 = newPosition('First position?\n')
+            p2 = Position(0, 0)
+            p3 = Position(0, 0)
+            while flag:
+                p2 = newPosition('Second position?\n')
+                if p1.getX() != p2.getX():
+                    flag = False
+            flag = True
+            while flag:
+                p3 = newPosition('Third position?\n')
+                if not checkRepetition(p1.getX(), p2.getX(), p3.getX()):
+                    flag = False
+                if p1.getY() == p2.getY() == p3.getY():
+                    flag = False
+            ka, kb, kc = getParamWithNothing(p1, p2, p3)
         sa = numToStrWithoutPositive(ka)
-        print(f"y={sa}x²{numToStr(kb)}{'x' if numToStr(kb) else ''}{numToStrForInteger(kc)}")
+        print(f"y={sa}x²{numToStr(kb)}{'x' if numToStr(kb) else ''}{constantToStr(kc)}")
         x = Symbol("x")
         solutions = solve([ka * x * x + kb * x + kc], [x])
         if 'I' in str(solutions[0][0]):
@@ -204,21 +262,22 @@ def main():
             s += f'({solutions[1][0]},0)'
         vertex_x = -kb / 2 * ka
         vertex_y = kc - kb ** 2 / (4 * ka)
-        str_negative_h = numToStrForInteger(-vertex_x)
+        str_negative_h = constantToStr(-vertex_x)
         if str_negative_h != '':
-            print(f"(also y={sa}(x{str_negative_h})²{numToStrForInteger(vertex_y)} )")
-        if 'I' not in str(solutions[0][0]) and -solutions[0][0] != (numToStrForInteger(-solutions[1][0])):
+            print(f"(also y={sa}(x{str_negative_h})²{constantToStr(vertex_y)} )")
+        if 'I' not in str(solutions[0][0]) and -solutions[0][0] != (constantToStr(-solutions[1][0])):
             if -solutions[0][0] == 0:
-                print(f"(also y={sa}x(x{(numToStrForInteger(-solutions[1][0]))}) )")
+                print(f"(also y={sa}x(x{(constantToStr(-solutions[1][0]))}) )")
             elif -solutions[1][0] == 0:
-                print(f"(also y={sa}x(x{(numToStrForInteger(-solutions[0][0]))}) )")
+                print(f"(also y={sa}x(x{(constantToStr(-solutions[0][0]))}) )")
             else:
-                print(f"(also y={sa}(x{numToStrForInteger(-solutions[0][0])})(x{(numToStrForInteger(-solutions[1][0]))}) )")
+                print(f"(also y={sa}(x{constantToStr(-solutions[0][0])})(x{(constantToStr(-solutions[1][0]))}) )")
 
         print(f"Vertex: ({-kb / 2 * ka},{kc - kb ** 2 / (4 * ka)})")
         print(f"Symmetry: x = {-kb / 2 * ka}")
         print(f"Intersection with X axis: {s}")
 
 
+doubleLine = "=" * 20
 if __name__ == "__main__":
     main()
