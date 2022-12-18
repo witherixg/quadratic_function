@@ -265,7 +265,6 @@ def main():
                     flag = False
             ka, kb, kc = getParamWithNothing(p1, p2, p3)
         sa = numToStrWithoutPositive(ka)
-        print(f"y={sa}x²{numToStr(kb)}{'x' if numToStr(kb) else ''}{constantToStr(kc)}")
         x = Symbol("x")
         solutions = solve([ka * x * x + kb * x + kc], [x])
         if 'I' in str(solutions[0][0]):
@@ -278,19 +277,20 @@ def main():
         vertex_x = -kb / 2 * ka
         vertex_y = kc - kb ** 2 / (4 * ka)
         str_negative_h = constantToStr(-vertex_x)
+        print(f"y={sa}x²{numToStr(kb)}{'x' if numToStr(kb) else ''}{constantToStr(kc)}")
         if str_negative_h != '':
-            print(f"(also y={sa}(x{str_negative_h})²{constantToStr(vertex_y)} )")
-        if 'I' not in str(solutions[0][0]) and -solutions[0][0] != (constantToStr(-solutions[1][0])):
+            print(f"( also y={sa}(x{str_negative_h})²{constantToStr(vertex_y)} )")
+        if 'I' not in str(solutions[0][0]) and len(solutions) == 2:
             if -solutions[0][0] == 0:
-                print(f"(also y={sa}x(x{(constantToStr(-solutions[1][0]))}) )")
+                print(f"( also y={sa}x(x{(constantToStr(-solutions[1][0]))}) )")
             elif -solutions[1][0] == 0:
-                print(f"(also y={sa}x(x{(constantToStr(-solutions[0][0]))}) )")
+                print(f"( also y={sa}x(x{(constantToStr(-solutions[0][0]))}) )")
             else:
-                print(f"(also y={sa}(x{constantToStr(-solutions[0][0])})(x{(constantToStr(-solutions[1][0]))}) )")
+                print(f"( also y={sa}(x{constantToStr(-solutions[0][0])})(x{(constantToStr(-solutions[1][0]))}) )")
 
         print(f"Vertex: ({-kb / 2 * ka},{kc - kb ** 2 / (4 * ka)})")
         print(f"Symmetry: x = {-kb / 2 * ka}")
-        print(f"Intersection with X axis: {s}")
+        print(f"Intersection with x-axis: {s}")
 
 
 doubleLine = "=" * 20
