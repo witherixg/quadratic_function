@@ -1,3 +1,5 @@
+import ast
+import json
 from fractions import Fraction
 
 from sympy import Symbol, Rational, solve
@@ -30,21 +32,33 @@ def newPosition(__prompt=''):
                 p = Position(position_string)
                 return p
             except TypeError:
-                print(f"{doubleLine}\nInvalid input!\n\"x\" and \"y\" should both be numbers.\n{doubleLine}")
+                printError('"x" and "y" should both be numbers.')
         else:
-            print(f"{doubleLine}\nInvalid input!\nA position should in the pattern \"(x,y).\"\n{doubleLine}")
+            printError('A position should in the pattern as "(x,y)".')
 
 
 def getParamWithNothing(p1: Position, p2: Position, p3: Position):
+
     unknown_a = Symbol("unknown_a")
     unknown_b = Symbol("unknown_b")
     unknown_c = Symbol("unknown_c")
     x_1, y_1 = p1.getPosition()
     x_2, y_2 = p2.getPosition()
     x_3, y_3 = p3.getPosition()
-    eq = [x_1 * x_1 * unknown_a + x_1 * unknown_b + unknown_c - y_1,
-          x_2 * x_2 * unknown_a + x_2 * unknown_b + unknown_c - y_2,
-          x_3 * x_3 * unknown_a + x_3 * unknown_b + unknown_c - y_3]
+    # check if p1(also p2) is vertex
+    if p1 == p2:
+        # 2ah + b = 0
+        # ah² + k - c = 0
+        h = p1.getX()
+        k = p1.getY()
+        eq = [2 * unknown_a * h + unknown_b,
+              unknown_a * h * h + k - unknown_c,
+              x_3 * x_3 * unknown_a + x_3 * unknown_b + unknown_c - y_3]
+    # else
+    else:
+        eq = [x_1 * x_1 * unknown_a + x_1 * unknown_b + unknown_c - y_1,
+              x_2 * x_2 * unknown_a + x_2 * unknown_b + unknown_c - y_2,
+              x_3 * x_3 * unknown_a + x_3 * unknown_b + unknown_c - y_3]
     dic = solve(eq, [unknown_a, unknown_b, unknown_c])
     v = list(dic.values())
     return Fraction(str(v[-3])) if v[-3] is not None else 0, Fraction(str(v[-2])) if v[-2] is not None else 0, Fraction(
@@ -52,14 +66,15 @@ def getParamWithNothing(p1: Position, p2: Position, p3: Position):
 
 
 def getParamWithA(a, p1: Position, p2: Position):
-    # check if p1(p2) is vertex
+    # check if p1(also p2) is vertex
     if p1 == p2:
         # b = -2ah
         # c = ah² + k
         h = p1.getX()
         k = p1.getY()
-        return -2 * a * h, a * h * h + k
-
+        b = -2 * a * h
+        c = a * h * h + k
+        return b, c
     # else
     unknown_b = Symbol("unknown_b")
     unknown_c = Symbol("unknown_c")
@@ -73,6 +88,17 @@ def getParamWithA(a, p1: Position, p2: Position):
 
 
 def getParamWithB(b, p1: Position, p2: Position):
+    # check if p1(also p2) is vertex
+    if p1 == p2:
+        # a = -b/2h
+        # c = ah² + k
+        h = p1.getX()
+        k = p1.getY()
+        a = - b / (2 * h)
+        c = a * h * h + k
+        return a, c
+
+    # else
     unknown_a = Symbol("unknown_a")
     unknown_c = Symbol("unknown_c")
     x_1, y_1 = p1.getPosition()
@@ -85,6 +111,17 @@ def getParamWithB(b, p1: Position, p2: Position):
 
 
 def getParamWithC(c, p1: Position, p2: Position):
+    # check if p1(also p2) is vertex
+    if p1 == p2:
+        # a = (c-k)/h²
+        # b = -2ah
+        h = p1.getX()
+        k = p1.getY()
+        a = (c - k) / (h * h)
+        b = -2 * a * h
+        return a, b
+
+    # else
     unknown_a = Symbol("unknown_a")
     unknown_b = Symbol("unknown_b")
     x_1, y_1 = p1.getPosition()
@@ -168,6 +205,11 @@ def checkRepetition(*args):
     return len(a_set) == len(args)
 
 
+def printError(reason: str):
+    doubleLine = "=" * 20
+    print(f"{doubleLine}\nInvalid input!\nBecause: {reason}\n{doubleLine}")
+
+
 def main():
     while True:
         reason = ""
@@ -177,10 +219,19 @@ def main():
         flag = True
         # check if the input is valid
         try:
-            param = eval(
-                ('{' + input('Input the value of a, b and c if given:(as a=1, b=2)\n') + '}').replace('a',
-                                                                                                      "'a'").replace(
-                    'b', "'b'").replace('c', "'c'").replace('=', ':').strip())
+            s = (('{' + input('Input the value of a, b and c if given:(as a=1, b=2)\n'))
+                 .replace('a', "'a'")
+                 .replace('b', "'b'")
+                 .replace('c', "'c'")
+                 .replace('=', ":'")
+                 .replace(',', "',") + "'").strip() + '}'
+            if s == "{'}":
+                s = '{}'
+            if test:
+                print(f"s={s}")
+            param = eval(s)
+            if test:
+                print(f"param={param}")
             ua = param.get('a')
             ub = param.get('b')
             uc = param.get('c')
@@ -203,7 +254,7 @@ def main():
         except TypeError:
             pass
         if reason:
-            print(f"{doubleLine}\nInvalid input!\n{reason}\n{doubleLine}")
+            printError(reason)
             continue
         if isNotNone(ua, ub, uc):
             ka = Rational(ua)
@@ -227,7 +278,7 @@ def main():
             p2 = Position("0, 0")
             while flag:
                 p2 = newPosition('Second position?\n')
-                if p1.getX() != p2.getX():
+                if p1.getX() != p2.getX() or p1 == p2:
                     flag = False
             kb, kc = getParamWithA(ka, p1, p2)
         elif ub:
@@ -236,7 +287,7 @@ def main():
             p2 = Position("0, 0")
             while flag:
                 p2 = newPosition('Second position?\n')
-                if p1.getX() != p2.getX():
+                if p1.getX() != p2.getX() or p1 == p2:
                     flag = False
             ka, kc = getParamWithB(kb, p1, p2)
         elif uc:
@@ -245,7 +296,7 @@ def main():
             p2 = Position("0, 0")
             while flag:
                 p2 = newPosition('Second position?\n')
-                if p1.getX() != p2.getX():
+                if p1.getX() != p2.getX() or p1 == p2:
                     flag = False
             ka, kb = getParamWithC(kc, p1, p2)
         else:
@@ -254,14 +305,29 @@ def main():
             p3 = Position("0, 0")
             while flag:
                 p2 = newPosition('Second position?\n')
-                if p1.getX() != p2.getX():
+                if p1.getX() != p2.getX() or p1 == p2:
                     flag = False
             flag = True
             while flag:
                 p3 = newPosition('Third position?\n')
-                if not checkRepetition(p1.getX(), p2.getX(), p3.getX()):
-                    flag = False
                 if p1.getY() == p2.getY() == p3.getY():
+                    flag = True
+                elif p1.getX() == p2.getX():
+                    if p1.getY() == p2.getY():
+                        flag = False
+                    else:
+                        flag = True
+                elif p1.getX() == p3.getX():
+                    if p1.getY() == p3.getY():
+                        # Make sure that p1 is equals to p2 instead of p3
+                        p2, p3 = p3, p2
+                        flag = False
+                elif p2.getX() == p3.getX():
+                    if p2.getY() == p3.getY():
+                        # Make sure that p1 is equals to p2 instead of p3
+                        p1, p3 = p3, p1
+                        flag = False
+                else:
                     flag = False
             ka, kb, kc = getParamWithNothing(p1, p2, p3)
         sa = numToStrWithoutPositive(ka)
@@ -274,7 +340,7 @@ def main():
         else:
             s = f'({solutions[0][0]},0)'
             s += f'({solutions[1][0]},0)'
-        vertex_x = -kb / 2 * ka
+        vertex_x = -kb / (2 * ka)
         vertex_y = kc - kb ** 2 / (4 * ka)
         str_negative_h = constantToStr(-vertex_x)
         print(f"y={sa}x²{numToStr(kb)}{'x' if numToStr(kb) else ''}{constantToStr(kc)}")
@@ -288,11 +354,11 @@ def main():
             else:
                 print(f"( also y={sa}(x{constantToStr(-solutions[0][0])})(x{(constantToStr(-solutions[1][0]))}) )")
 
-        print(f"Vertex: ({-kb / 2 * ka},{kc - kb ** 2 / (4 * ka)})")
-        print(f"Symmetry: x = {-kb / 2 * ka}")
+        print(f"Vertex ({'Maximum' if ka < 0 else 'Minimum'}) : ({vertex_x}, {vertex_y})")
+        print(f"Symmetry: x = {vertex_x}")
         print(f"Intersection with x-axis: {s}")
+        print()
 
-
-doubleLine = "=" * 20
+test = False
 if __name__ == "__main__":
     main()
